@@ -93,10 +93,10 @@ class AutoTunerBase(tune.Trainable):
         error = 'ERR' in metrics.values()
         not_found = 'N/A' in metrics.values()
         if error or not_found:
-            return (99999999999) * (self.step_ / 100)**(-1)
+            return (99999999999)
         gamma = (metrics['clk_period'] - metrics['worst_slack']) / 10
         score = metrics['clk_period'] - metrics['worst_slack']
-        score = score * (self.step_ / 100)**(-1) + gamma * metrics['num_drc']
+        score = score + gamma * metrics['num_drc']
         return score
 
     @classmethod
@@ -624,7 +624,7 @@ def parse_arguments():
         '--samples',
         type=int,
         metavar='<int>',
-        default=10,
+        default=1000,
         help='Number of samples for tuning.')
     tune_parser.add_argument(
         '--iterations',
@@ -848,17 +848,17 @@ if __name__ == '__main__':
             resume=args.resume,
             stop={"training_iteration": args.iterations},
         )
-        if args.algorithm == 'pbt':
-            tune_args['scheduler'] = search_algo
-        else:
-            tune_args['search_alg'] = search_algo
-            tune_args['scheduler'] = AsyncHyperBandScheduler()
+        # if args.algorithm == 'pbt':
+        #     tune_args['scheduler'] = search_algo
+        # else:
+        #     tune_args['search_alg'] = search_algo
+            # tune_args['scheduler'] = AsyncHyperBandScheduler()
         if args.algorithm != 'ax':
             tune_args['config'] = config_dict
         analysis = tune.run(TrainClass, **tune_args)
 
         task_id = save_best.remote(analysis.best_config)
         _ = ray.get(task_id)
-        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_config}')
+        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_result}')
     elif args.mode == 'sweep':
         sweep()

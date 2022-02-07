@@ -544,16 +544,21 @@ clean_cts:
 # |  _ <| |_| | |_| | | |  | || |\  | |_| |
 # |_| \_\\___/ \___/  |_| |___|_| \_|\____|
 #
-route: $(RESULTS_DIR)/5_route.def \
-       $(RESULTS_DIR)/5_route.sdc
+# route: $(RESULTS_DIR)/5_route.def \
+#        $(RESULTS_DIR)/5_route.sdc
 # ==============================================================================
 
+
+globalroute: $(RESULTS_DIR)/route.guide
 
 # STEP 1: Run global route
 #-------------------------------------------------------------------------------
 $(RESULTS_DIR)/route.guide: $(RESULTS_DIR)/4_cts.def $(FASTROUTE_TCL) $(PRE_GLOBAL_ROUTE)
 	($(TIME_CMD) $(OPENROAD_CMD) $(SCRIPTS_DIR)/global_route.tcl -metrics $(LOG_DIR)/5_1_fastroute.json) 2>&1 | tee $(LOG_DIR)/5_1_fastroute.log
 
+
+detailedroute: $(RESULTS_DIR)/5_route.def \
+               $(RESULTS_DIR)/5_route.sdc
 
 # STEP 2: Run detailed route
 #-------------------------------------------------------------------------------
@@ -744,5 +749,5 @@ print-%  : ; @echo $* = $($*)
 # Utilities
 #-------------------------------------------------------------------------------
 include $(UTILS_DIR)/utils.mk
-export PRIVATE_DIR ?= ../../private_tool_scripts
+export PRIVATE_DIR = ../../private_tool_scripts
 -include $(PRIVATE_DIR)/private.mk
