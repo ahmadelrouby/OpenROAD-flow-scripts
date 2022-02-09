@@ -99,7 +99,7 @@ endif
 
 #-------------------------------------------------------------------------------
 # Proper way to initiate SHELL for make
-SHELL          ?= /bin/bash
+SHELL          = /usr/bin/bash
 .SHELLFLAGS    = -o pipefail -c
 
 #-------------------------------------------------------------------------------

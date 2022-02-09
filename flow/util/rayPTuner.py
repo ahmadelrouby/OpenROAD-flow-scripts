@@ -786,11 +786,11 @@ def evaluate_end(raw_metrics):
 if __name__ == '__main__':
 # def run_experiment(config_path_, platform_, design_, last_step, eval_func, continue_from="", verbose_=0):
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "finish": evaluate_end}
-    runs = [("globalroute", "../designs/sky130hd/gcd/autotuner.json",5), 
-            ("finish", "../designs/sky130hd/gcd/autotuner_rem.json",5)]
+    runs = [("globalroute", "../designs/sky130hd/ibex/autotuner.json",5), 
+            ("finish", "../designs/sky130hd/ibex/autotuner_rem.json",5)]
 
     platform = "sky130hd"
-    design = "gcd"
+    design = "ibex"
     verbose = 0
 
     LOCAL_DIR = f'../logs/{platform}/{design}'
