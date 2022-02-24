@@ -11,7 +11,7 @@
         "type": "float",
         "minmax": [
             0.1,
-            2.0
+            10.0
         ],
         "step": 0
     },
@@ -39,19 +39,11 @@
         ],
         "step": 1
     },
-    "_FR_LAYER_ADJUST": {
-        "type": "float",
-        "minmax": [
-            0.1,
-            0.7
-        ],
-        "step": 0
-    },
     "PLACE_DENSITY_LB_ADDON": {
         "type": "float",
         "minmax": [
             0.0,
-            0.99
+            1.0
         ],
         "step": 0
     },
@@ -75,16 +67,16 @@
         "type": "int",
         "minmax": [
             10,
-            40
+            400
         ],
-        "step": 1
+        "step": 10
     },
     "CTS_CLUSTER_DIAMETER": {
         "type": "int",
         "minmax": [
-            80,
-            120
+            20,
+            800
         ],
-        "step": 1
+        "step": 20
     }
 }

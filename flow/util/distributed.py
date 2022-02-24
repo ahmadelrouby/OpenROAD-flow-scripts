@@ -35,6 +35,7 @@ from multiprocessing import cpu_count
 from subprocess import run
 import numpy as np
 
+import time
 import ray
 from ray import tune
 from ray.tune.schedulers import AsyncHyperBandScheduler
@@ -803,6 +804,10 @@ if __name__ == '__main__':
     # need to upload the files.
     config_dict, SDC_ORIGINAL, FR_ORIGINAL = read_config(abspath(args.config))
 
+    dd = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    sys.stdout = open(f'logs-{dd}.log', 'w')
+    sys.stderr = open(f'logs-{dd}.err', 'w')
+    start_time = time.time()
     # Connect to remote Ray server if any, otherwise will run locally
     if args.server is not None:
         # At GCP we have a NFS folder that is present for all worker nodes.
@@ -859,6 +864,10 @@ if __name__ == '__main__':
 
         task_id = save_best.remote(analysis.best_config)
         _ = ray.get(task_id)
-        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_result}')
+        end_time = time.time()
+        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_result} in {(end_time-start_time)} seconds')
     elif args.mode == 'sweep':
         sweep()
+
+    sys.stdout.close()
+    sys.stderr.close()

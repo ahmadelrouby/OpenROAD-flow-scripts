@@ -54,13 +54,6 @@ class AutoTunerBase(tune.Trainable):
     AutoTuner base class for experiments.
     '''
 
-    # def __init__(self, experiment, last, evalfn, config = None, logger_creator = None, remote_checkpoint_dir = None, sync_function_tpl = None):
-    #     super().__init__(config, logger_creator, remote_checkpoint_dir, sync_function_tpl)
-    #     self.experiment = experiment
-    #     self.last = last
-    #     self.eval = evalfn
-        
-
     def setup(self, config, data=None):
         '''
         Setup current experiment step.
@@ -96,14 +89,7 @@ class AutoTunerBase(tune.Trainable):
             data = json.load(file) 
 
         score = self.eval(data)
-        # score = self.evaluate(self.read_metrics(metrics_file))
-        # print(f'flow variant {flow_variant}, self: {self.trial_id}\n')
-        # with open(f'../{self.trial_id}', 'w') as file:
-        #     file.write(flow_variant)
-        #     file.close()
-       
-        # Feed the score back to Tune.
-        # return must match 'metric' used in tune.run()
+
         return {"minimum": score}
 
     def evaluate(self, metrics):
@@ -199,31 +185,7 @@ def read_config(file_name):
             return tune.quniform(min_, max_, this['step'])
         return None
 
-    # def read_tune_ax(name, this):
-    #     dict_ = dict(name=name)
-    #     min_, max_ = this['minmax']
-    #     if min_ == max_:
-    #         dict_["type"] = "fixed"
-    #         dict_["value"] = min_
-    #     elif this['type'] == 'int':
-    #         if this['step'] == 1:
-    #             dict_["type"] = "range"
-    #             dict_["bounds"] = [min_, max_]
-    #             dict_["value_type"] = "int"
-    #         else:
-    #             dict_["type"] = "choice"
-    #             dict_["values"] = tune.randint(min_, max_, this['step'])
-    #             dict_["value_type"] = "int"
-    #     elif this['type'] == 'float':
-    #         if this['step'] == 1:
-    #             dict_["type"] = "choice"
-    #             dict_["values"] = tune.quniform(min_, max_, this['step'])
-    #             dict_["value_type"] = "float"
-    #         else:
-    #             dict_["type"] = "range"
-    #             dict_["bounds"] = [min_, max_]
-    #             dict_["value_type"] = "float"
-    #     return dict_
+
 
     with open(file_name) as file:
         data = json.load(file)
@@ -365,14 +327,14 @@ def get_flow_variant(param, experiment_):
     return f'{experiment_}/variant-{variant_hash}'
 
 
-def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False):
+def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False, time_limit=28800):
     '''
     Wrapper for subprocess.run
     Allows to run shell command, control print and exceptions.
     '''
 
     # print(f'Running command: {cmd}\n')
-    process = run(cmd, capture_output=True, text=True, check=False, shell=True)
+    process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=time_limit)
     if stderr_file is not None and process.stderr != '':
         with open(stderr_file, 'a') as file:
             file.write(f'\n\n{cmd}\n{process.stderr}')
@@ -386,6 +348,7 @@ def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False):
 
     if fail_fast and process.returncode != 0:
         raise RuntimeError
+
 
 
 def openroad(base_dir, parameters, experiment_, last='finish', prev='', path='',):
@@ -425,7 +388,7 @@ def openroad(base_dir, parameters, experiment_, last='finish', prev='', path='',
     make_command += f' NPROC=16 {last}'
     run_command(make_command,
                 stderr_file=f'{log_path}error-make-finish.log',
-                stdout_file=f'{log_path}make-finish-stdout.log')
+                stdout_file=f'{log_path}make-finish-stdout.log', time_limit=10800)
 
     metrics_file = os.path.join(report_path, 'metrics.json')
     metrics_command = export_command
@@ -439,234 +402,6 @@ def openroad(base_dir, parameters, experiment_, last='finish', prev='', path='',
                 stdout_file=f'{log_path}metrics-stdout.log')
 
     return metrics_file, flow_variant
-
-# def parse_arguments():
-#     '''
-#     Parse arguments from command line.
-#     '''
-#     parser = argparse.ArgumentParser()
-
-#     subparsers = parser.add_subparsers(help='mode of execution',
-#                                        dest='mode',
-#                                        required=True)
-#     tune_parser = subparsers.add_parser("tune")
-#     sweep_parser = subparsers.add_parser("sweep")
-
-#     # DUT
-#     parser.add_argument(
-#         '--design',
-#         type=str,
-#         metavar='<gcd,jpeg,ibex,aes,...>',
-#         required=True,
-#         help='Name of the design for Autotuning.')
-#     parser.add_argument(
-#         '--platform',
-#         type=str,
-#         metavar='<sky130hd,sky130hs,asap7,...>',
-#         required=True,
-#         help='Name of the platform for Autotuning.')
-
-#     # Experiment Setup
-#     parser.add_argument(
-#         '--config',
-#         type=str,
-#         metavar='<path>',
-#         required=True,
-#         help='Configuration file that sets which knobs to use for Autotuning.')
-#     parser.add_argument(
-#         '--experiment',
-#         type=str,
-#         metavar='<str>',
-#         default='test',
-#         help='Experiment name. This parameter is used to prefix the'
-#         ' FLOW_VARIANT and to set the Ray log destination.')
-#     tune_parser.add_argument(
-#         '--resume',
-#         action='store_true',
-#         help='Resume previous run.')
-
-#     # Setup
-#     parser.add_argument(
-#         '--git-clean',
-#         action='store_true',
-#         help='Clean binaries and build files.'
-#              ' WARNING: may lose previous data.'
-#              ' Use carefully.')
-#     parser.add_argument(
-#         '--git-clone',
-#         action='store_true',
-#         help='Force new git clone.'
-#              ' WARNING: may lose previous data.'
-#              ' Use carefully.')
-#     parser.add_argument(
-#         '--git-clone-args',
-#         type=str,
-#         metavar='<str>',
-#         default='',
-#         help='Additional git clone arguments.')
-#     parser.add_argument(
-#         '--git-latest',
-#         action='store_true',
-#         help='Use latest version of OpenROAD app.')
-#     parser.add_argument(
-#         '--git-or-branch',
-#         type=str,
-#         metavar='<str>',
-#         default='',
-#         help='OpenROAD app branch to use.')
-#     parser.add_argument(
-#         '--git-orfs-branch',
-#         type=str,
-#         metavar='<str>',
-#         default='master',
-#         help='OpenROAD-flow-scripts branch to use.')
-#     parser.add_argument(
-#         '--git-url',
-#         type=str,
-#         metavar='<url>',
-#         default=ORFS_URL,
-#         help='OpenROAD-flow-scripts repo URL to use.')
-#     parser.add_argument(
-#         '--build-args',
-#         type=str,
-#         metavar='<str>',
-#         default='',
-#         help='Additional arguments given to ./build_openroad.sh.')
-
-#     # ML
-#     tune_parser.add_argument(
-#         '--algorithm',
-#         type=str,
-#         choices=['hyperopt',
-#                  'ax',
-#                  'nevergrad',
-#                  'optuna',
-#                  'pbt',
-#                  'random'],
-#         default='hyperopt',
-#         help='Search algorithm to use for Autotuning.')
-#     tune_parser.add_argument(
-#         '--eval',
-#         type=str,
-#         choices=['default', 'ppa-improv'],
-#         default='default',
-#         help='Evaluate function to use with search algorithm.')
-#     tune_parser.add_argument(
-#         '--samples',
-#         type=int,
-#         metavar='<int>',
-#         default=10,
-#         help='Number of samples for tuning.')
-#     tune_parser.add_argument(
-#         '--iterations',
-#         type=int,
-#         metavar='<int>',
-#         default=1,
-#         help='Number of iterations for tuning.')
-#     tune_parser.add_argument(
-#         '--reference',
-#         type=str,
-#         metavar='<path>',
-#         default=None,
-#         help='Reference file for use with PPAImprov.')
-#     tune_parser.add_argument(
-#         '--perturbation',
-#         type=int,
-#         metavar='<int>',
-#         default=25,
-#         help='Perturbation interval for PopulationBasedTraining.')
-#     tune_parser.add_argument(
-#         '--seed',
-#         type=int,
-#         metavar='<int>',
-#         default=42,
-#         help='Random seed.')
-
-#     # Workload
-#     parser.add_argument(
-#         '--jobs',
-#         type=int,
-#         metavar='<int>',
-#         default=int(np.floor(cpu_count() / 2)),
-#         help='Max number of concurrent jobs.')
-#     parser.add_argument(
-#         '--openroad-threads',
-#         type=int,
-#         metavar='<int>',
-#         default=16,
-#         help='Max number of threads openroad can use.')
-#     parser.add_argument(
-#         '--server',
-#         type=str,
-#         metavar='<ip|servername>',
-#         default=None,
-#         help='The address of Ray server to connect.')
-#     parser.add_argument(
-#         '--port',
-#         type=int,
-#         metavar='<int>',
-#         default=10001,
-#         help='The port of Ray server to connect.')
-
-#     parser.add_argument(
-#         '-v', '--verbose',
-#         action='count',
-#         default=0,
-#         help='Verbosity level.\n\t0: only print Ray status\n\t1: also print'
-#         ' training stderr\n\t2: also print training stdout.')
-
-#     arguments = parser.parse_args()
-#     if arguments.mode == 'tune':
-#         arguments.algorithm = arguments.algorithm.lower()
-#         # Validation of arguments
-#         if arguments.eval == 'ppa-improv' and arguments.reference is None:
-#             print('[ERROR TUN-0006] The argument "--eval ppa-improv"'
-#                   ' requries that "--reference <FILE>" is also given.')
-#             sys.exit(7)
-
-#     arguments.experiment += f'-{arguments.mode}-{DATE}'
-
-#     return arguments
-
-
-# def set_algorithm(experiment_name, config):
-#     '''
-#     Configure search algorithm.
-#     '''
-#     if args.algorithm == 'hyperopt':
-#         algorithm = HyperOptSearch(points_to_evaluate=best_params)
-#     elif args.algorithm == 'ax':
-#         ax_client = AxClient(enforce_sequential_optimization=False)
-#         ax_client.create_experiment(
-#             name=experiment_name,
-#             parameters=config,
-#             objective_name="minimum",
-#             minimize=True
-#         )
-#         algorithm = AxSearch(ax_client=ax_client,
-#                              points_to_evaluate=best_params,
-#                              max_concurrent=args.jobs)
-#     elif args.algorithm == 'nevergrad':
-#         algorithm = NevergradSearch(
-#             points_to_evaluate=best_params,
-#             optimizer=ng.optimizers.registry["PortfolioDiscreteOnePlusOne"]
-#         )
-#     elif args.algorithm == 'optuna':
-#         algorithm = OptunaSearch(points_to_evaluate=best_params,
-#                                  seed=args.seed)
-#     elif args.algorithm == 'pbt':
-#         algorithm = PopulationBasedTraining(
-#             time_attr="training_iteration",
-#             perturbation_interval=args.perturbation,
-#             hyperparam_mutations=config,
-#             synch=False
-#         )
-#     elif args.algorithm == 'random':
-#         algorithm = BasicVariantGenerator(max_concurrent=args.jobs)
-#     if args.algorithm not in ['random', 'pbt']:
-#         algorithm = ConcurrencyLimiter(algorithm, max_concurrent=args.jobs)
-#     return algorithm
-
 
 def set_best_params(platform, design):
     '''
@@ -793,6 +528,10 @@ if __name__ == '__main__':
     design = "ibex"
     verbose = 0
 
+    dd = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    sys.stdout = open(f'logs-{dd}.log', 'w')
+    sys.stderr = open(f'logs-{dd}.err', 'w')
+
     LOCAL_DIR = f'../logs/{platform}/{design}'
     INSTALL_PATH = abspath('../../tools/install')
 
@@ -833,29 +572,22 @@ if __name__ == '__main__':
         tune_args['search_alg'] = search_algo
         # tune_args['scheduler'] = AsyncHyperBandScheduler()
         tune_args['config'] = config_dict
-
-
-        # experiment_spec = Experiment(
-        #     name=experiment,
-        #     run=TrainClass,
-        #     stop={"training_iteration": 1},
-        #     config=tune_args['config'],
-        #     num_samples=10,
-        #     local_dir=LOCAL_DIR
-        # )
+        start_time = time.time()
 
 
         analysis = tune.run(tune.with_parameters(TrainClass, data=data), **tune_args)
-        
+        end_time = time.time()
         # task_id = save_best.remote(analysis.best_config)
         # _ = ray.get(task_id)
         f = open(f'{LOCAL_DIR}/{experiment_str}/{analysis.best_trial.trial_id}', 'r')
         CONTINUE_FROM = ray.put(f.read())
-        print(f'Best Variant for {ray.get(LAST_STEP)} is {ray.get(CONTINUE_FROM)} with params {analysis.best_result}') 
+        print(f'Best Variant for {ray.get(LAST_STEP)} is {ray.get(CONTINUE_FROM)} with params {analysis.best_result} achieved in {(end_time - start_time)} seconds.') 
+        sys.stdout.flush()
         time.sleep(5)
 
 
-
+    sys.stdout.close()
+    sys.stderr.close()
 
     # DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     # experiment = f'test-tune-{DATE}-{uuid.uuid4()}'
