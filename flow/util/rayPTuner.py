@@ -334,20 +334,25 @@ def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False, time_l
     '''
 
     # print(f'Running command: {cmd}\n')
-    process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=time_limit)
-    if stderr_file is not None and process.stderr != '':
-        with open(stderr_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stderr}')
-    if stdout_file is not None and process.stdout != '':
-        with open(stdout_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stdout}')
-    if verbose >= 1:
-        print(process.stderr)
-    if verbose >= 2:
-        print(process.stdout)
+    if stderr_file is not None and stdout_file is not None:
+        with open(stderr_file, 'a') as err_file, open(stdout_file, 'a') as out_file :
+            process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=time_limit, stdout=out_file, stderr=stderr_file)
+    else:
+        process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=time_limit)
+        
+    # if stderr_file is not None and process.stderr != '':
+    #     with open(stderr_file, 'a') as file:
+    #         file.write(f'\n\n{cmd}\n{process.stderr}')
+    # if stdout_file is not None and process.stdout != '':
+    #     with open(stdout_file, 'a') as file:
+    #         file.write(f'\n\n{cmd}\n{process.stdout}')
+    # if verbose >= 1:
+    #     print(process.stderr)
+    # if verbose >= 2:
+    #     print(process.stdout)
 
-    if fail_fast and process.returncode != 0:
-        raise RuntimeError
+    # if fail_fast and process.returncode != 0:
+    #     raise RuntimeError
 
 
 
