@@ -336,9 +336,9 @@ def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False, time_l
     # print(f'Running command: {cmd}\n')
     if stderr_file is not None and stdout_file is not None:
         with open(stderr_file, 'a') as err_file, open(stdout_file, 'a') as out_file :
-            process = run(cmd, check=False, shell=True, timeout=time_limit, stdout=out_file, stderr=err_file)
+            process = run(cmd, check=False, shell=True, stdout=out_file, stderr=err_file)
     else:
-        process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=time_limit)
+        process = run(cmd, capture_output=True, text=True, check=False, shell=True)
 
     # if stderr_file is not None and process.stderr != '':
     #     with open(stderr_file, 'a') as file:
