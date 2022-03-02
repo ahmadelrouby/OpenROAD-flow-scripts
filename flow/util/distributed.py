@@ -55,7 +55,7 @@ ORFS_URL = 'https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts'
 AUTOTUNER_BEST = 'autotuner-best.json'
 FASTROUTE_TCL = 'fastroute.tcl'
 CONSTRAINTS_SDC = 'constraint.sdc'
-
+TIMEOUT = 200
 
 class AutoTunerBase(tune.Trainable):
     '''
@@ -397,21 +397,23 @@ def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False):
     Wrapper for subprocess.run
     Allows to run shell command, control print and exceptions.
     '''
-    process = run(cmd, capture_output=True, text=True, check=False, shell=True)
-    if stderr_file is not None and process.stderr != '':
-        with open(stderr_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stderr}')
-    if stdout_file is not None and process.stdout != '':
-        with open(stdout_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stdout}')
-    if args.verbose >= 1:
-        print(process.stderr)
-    if args.verbose >= 2:
-        print(process.stdout)
+    try:
+        process = run(cmd, capture_output=True, text=True, check=False, shell=True, timeout=TIMEOUT)
+        if stderr_file is not None and process.stderr != '':
+            with open(stderr_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stderr}')
+        if stdout_file is not None and process.stdout != '':
+            with open(stdout_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stdout}')
+        if args.verbose >= 1:
+            print(process.stderr)
+        if args.verbose >= 2:
+            print(process.stdout)
 
-    if fail_fast and process.returncode != 0:
-        raise RuntimeError
-
+        if fail_fast and process.returncode != 0:
+            raise RuntimeError
+    except:
+        print("Execution ended because of timeout.")
 
 @ray.remote
 def openroad_distributed(repo_dir, config, path):
