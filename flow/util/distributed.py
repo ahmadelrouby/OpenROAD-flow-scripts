@@ -206,7 +206,7 @@ def read_config(file_name):
     def read_sweep(this):
         return [*this['minmax'], this['step']]
 
-    def read_tune(this):
+    def read_tune(this, name):
         min_, max_ = this['minmax']
         if min_ == max_:
             # Returning a choice of a single element allow pbt algorithm to
@@ -217,7 +217,10 @@ def read_config(file_name):
                 print('[WARNING TUN-0011] NevergradSearch may not work '
                       'with lowerbound value 0.')
             if this['step'] == 1:
-                return tune.randint(min_, max_)
+                if name != 'CELL_PAD_IN_SITES_GLOBAL_PLACEMENT':
+                    return tune.randint(min_, max_)
+                else:
+                    return tune.sample_from(lambda spec: spec.config['CELL_PAD_IN_SITES_DETAIL_PLACEMENT'] + np.random.randint(min_, max_))
             return tune.qrandint(min_, max_, this['step'])
         if this['type'] == 'float':
             if this['step'] == 0:
@@ -275,7 +278,7 @@ def read_config(file_name):
         elif args.mode == 'sweep':
             config[key] = read_sweep(value)
         elif args.mode == 'tune' and args.algorithm != 'ax':
-            config[key] = read_tune(value)
+            config[key] = read_tune(value, key)
         elif args.mode == 'tune' and args.algorithm == 'ax':
             config.append(read_tune_ax(key, value))
     # Copy back to global variables
