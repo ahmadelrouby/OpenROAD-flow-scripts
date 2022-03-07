@@ -217,10 +217,7 @@ def read_config(file_name):
                 print('[WARNING TUN-0011] NevergradSearch may not work '
                       'with lowerbound value 0.')
             if this['step'] == 1:
-                if name != 'CELL_PAD_IN_SITES_GLOBAL_PLACEMENT':
-                    return tune.randint(min_, max_)
-                else:
-                    return tune.sample_from(lambda spec: np.random.randint(min_ + spec.config['CELL_PAD_IN_SITES_DETAIL_PLACEMENT'], max_ + spec.config['CELL_PAD_IN_SITES_DETAIL_PLACEMENT']))
+                return tune.randint(min_, max_)
             return tune.qrandint(min_, max_, this['step'])
         if this['type'] == 'float':
             if this['step'] == 0:
