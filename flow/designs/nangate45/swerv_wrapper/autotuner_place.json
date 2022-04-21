@@ -4,14 +4,14 @@
         "type": "float",
         "minmax": [
             1.0,
-            15.155
+            5.155
         ],
         "step": 0
     },
     "CORE_UTILIZATION": {
         "type": "int",
         "minmax": [
-            20,
+            30,
             100
         ],
         "step": 1
