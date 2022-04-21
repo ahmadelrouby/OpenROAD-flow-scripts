@@ -100,7 +100,7 @@ class AutoTunerBase(tune.Trainable):
             file.close()
 
         with open(f'../{self.trial_id}.json', 'w') as outfile:
-            print(self.currentConfig, file=outfile)
+            print(json.dumps(self.currentConfig), file=outfile)
             outfile.flush()
             outfile.close()
 
