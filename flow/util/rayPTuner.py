@@ -67,15 +67,17 @@ class AutoTunerBase(tune.Trainable):
         # <repo>/<logs>/<platform>/<design>/<experiment>-DATE/<id>/<cwd>
         repo_dir = os.getcwd() + '/../' * 6
         self.repo_dir = abspath(repo_dir)
-        self.previous_params =  data.get("old_params")
-        self.parameters = parse_config(config, path=os.getcwd())
+        self.previous_config =  data.get("old_params")
+        print(f'Params before overwriting: {config}\n')
 
-        print(f'Params before overwriting: {self.parameters}\n')
-        if self.previous_params is not None:
-            self.parameters.update(self.previous_params)
+        if self.previous_config is not None:
+            config.update(self.previous_config)
 
+        print(f'Params after overwriting: {config}\n')
         
-        print(f'Params after overwriting: {self.parameters}\n')
+        self.currentConfig = config
+        self.parameters = parse_config(config, path=os.getcwd())
+        
         # print(f'Main Repo: {repo_dir}, Repo Dir: {self.repo_dir}, params: {self.parameters}\n')
         self.step_ = 0
 
@@ -98,7 +100,7 @@ class AutoTunerBase(tune.Trainable):
             file.close()
 
         with open(f'../{self.trial_id}.json', 'w') as file:
-            file.write(self.parameters)
+            file.write(self.currentConfig)
             file.flush()
             file.close()
 
