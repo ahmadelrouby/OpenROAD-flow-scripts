@@ -31,6 +31,8 @@ from os.path import abspath
 import re
 import sys
 from datetime import datetime
+import time
+
 from multiprocessing import cpu_count
 from subprocess import run
 from itertools import product
@@ -98,10 +100,10 @@ class AutoTunerBase(tune.Trainable):
         error = 'ERR' in metrics.values()
         not_found = 'N/A' in metrics.values()
         if error or not_found:
-            return (99999999999) * (self.step_ / 100)**(-1)
+            return (99999999999)
         gamma = (metrics['clk_period'] - metrics['worst_slack']) / 10
         score = metrics['clk_period'] - metrics['worst_slack']
-        score = score * (self.step_ / 100)**(-1) + gamma * metrics['num_drc']
+        score = score + gamma * metrics['num_drc']
         return score
 
     @classmethod
@@ -437,25 +439,28 @@ def run_command(cmd, timeout=None,
     Wrapper for subprocess.run
     Allows to run shell command, control print and exceptions.
     '''
-    process = run(cmd,
-                  timeout=timeout,
-                  capture_output=True,
-                  text=True,
-                  check=False,
-                  shell=True)
-    if stderr_file is not None and process.stderr != '':
-        with open(stderr_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stderr}')
-    if stdout_file is not None and process.stdout != '':
-        with open(stdout_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stdout}')
-    if args.verbose >= 1:
-        print(process.stderr)
-    if args.verbose >= 2:
-        print(process.stdout)
+    try:
+        process = run(cmd,
+                    timeout=timeout,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    shell=True)
+        if stderr_file is not None and process.stderr != '':
+            with open(stderr_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stderr}')
+        if stdout_file is not None and process.stdout != '':
+            with open(stdout_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stdout}')
+        if args.verbose >= 1:
+            print(process.stderr)
+        if args.verbose >= 2:
+            print(process.stdout)
 
-    if fail_fast and process.returncode != 0:
-        raise RuntimeError
+        if fail_fast and process.returncode != 0:
+            raise RuntimeError
+    except:
+        print("Exeuction ended because of timeout.")
 
 
 @ray.remote
@@ -885,6 +890,10 @@ if __name__ == '__main__':
     # Read config and original files before handling where to run in case we
     # need to upload the files.
     config_dict, SDC_ORIGINAL, FR_ORIGINAL = read_config(abspath(args.config))
+    dd = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+    sys.stdout = open(f'logs-{dd}.log', 'w')
+    sys.stderr = open(f'logs-{dd}.err', 'w')
+    start_time = time.time()
 
     # Connect to remote Ray server if any, otherwise will run locally
     if args.server is not None:
@@ -948,6 +957,10 @@ if __name__ == '__main__':
 
         task_id = save_best.remote(analysis)
         _ = ray.get(task_id)
-        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_config}')
+        end_time = time.time()
+        print(f'[INFO TUN-0002] Best parameters found: {analysis.best_result} in {(end_time-start_time)} seconds')
     elif args.mode == 'sweep':
         sweep()
+
+    sys.stdout.close()
+    sys.stderr.close()
