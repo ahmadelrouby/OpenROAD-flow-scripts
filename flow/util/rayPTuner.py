@@ -33,6 +33,7 @@ from ray.util.queue import Queue
 import nevergrad as ng
 from ax.service.ax_client import AxClient
 
+IS_PPA = 1
 ORFS_URL = 'https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts'
 AUTOTUNER_BEST = 'autotuner-best.json'
 FASTROUTE_TCL = 'fastroute.tcl'
@@ -40,6 +41,7 @@ CONSTRAINTS_SDC = 'constraint.sdc'
 TIMEOUT = 10800
 JOBS = 30
 DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+PPA_REF = '../designs/nangate45/swerv_wrapper/metrics_base.json'
 # experiment = f'test-tune-{DATE}-{uuid.uuid4()}'
 # platform = ""
 # design = ""
@@ -636,13 +638,62 @@ def evaluate_end(raw_metrics):
     print(f'Final score is {score}')
     return score
 
+def get_ppa(metrics, reference):
+        '''
+        Compute PPA term for evaluate.
+        '''
+        coeff_perform, coeff_power, coeff_area = 10000, 100, 100
 
+        eff_clk_period = metrics['clk_period']
+        if metrics['worst_slack'] < 0:
+            eff_clk_period -= metrics['worst_slack']
+
+        eff_clk_period_ref = reference['clk_period']
+        if reference['worst_slack'] < 0:
+            eff_clk_period_ref -= reference['worst_slack']
+
+        def percent(x_1, x_2):
+            return (x_1 - x_2) / x_1 * 100
+
+        performance = percent(eff_clk_period_ref, eff_clk_period)
+        power = percent(reference['total_power'],
+                        metrics['total_power'])
+        area = percent(100 - reference['final_util'],
+                       100 - metrics['final_util'])
+
+        # Lower values of PPA are better.
+        ppa_upper_bound = (coeff_perform + coeff_power + coeff_area) * 100
+        ppa = performance * coeff_perform
+        ppa += power * coeff_power
+        ppa += area * coeff_area
+        return ppa_upper_bound - ppa
+
+def evaluate_end_ppa(raw_metrics):
+    metrics = read_metrics(raw_metrics)
+    with open(PPA_REF) as file:
+            data = json.load(file) 
+    ref_metrics = read_metrics(data)
+
+    error = 'ERR' in metrics.values() or 'ERR' in ref_metrics.values()
+    not_found = 'N/A' in metrics.values() or 'N/A' in ref_metrics.values()
+    if error or not_found:
+        return (99999999999)
+    ppa = get_ppa(metrics, ref_metrics)
+    gamma = ppa / 10
+    score = ppa + (gamma * metrics['num_drc'])
+    print(f'ppa score is {score}')
+    return score
 
 if __name__ == '__main__':
-# def run_experiment(config_path_, platform_, design_, last_step, eval_func, continue_from="", verbose_=0):
-    stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": evaluate_end}
-    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",50), 
-            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",50)]
+
+    last_score_fn = evaluate_end
+    if IS_PPA and PPA_REF != '':
+        last_score_fn = evaluate_end_ppa
+
+
+    stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
+    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",150), 
+            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",150)]
 
     platform = "nangate45"
     design = "swerv_wrapper"
