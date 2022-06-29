@@ -39,9 +39,9 @@ AUTOTUNER_BEST = 'autotuner-best.json'
 FASTROUTE_TCL = 'fastroute.tcl'
 CONSTRAINTS_SDC = 'constraint.sdc'
 TIMEOUT = 10800
-JOBS = 30
+JOBS = 20
 DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-PPA_REF = '../designs/nangate45/swerv_wrapper/metrics_base.json'
+PPA_REF = '/home/ahmad/OpenROAD-flow-scripts/flow/designs/nangate45/swerv_wrapper/metrics_base.json'
 # experiment = f'test-tune-{DATE}-{uuid.uuid4()}'
 # platform = ""
 # design = ""
@@ -72,15 +72,18 @@ class AutoTunerBase(tune.Trainable):
         self.previous_config =  data.get("old_params")
         print(f'Params before overwriting: {config}\n')
 
-        if self.previous_config is not None:
-            config.update(self.previous_config)
+        if self.previous_config is None:
+            self.previous_config = {}
+        
+        self.parameters = parse_config(config, self.previous_config, path=os.getcwd())
 
-        print(f'Params after overwriting: {config}\n')
+        
+        config.update(self.previous_config)
+
+        print(f'Params after overwriting: {config} with params: {self.parameters}\n')
         
         self.currentConfig = config
-        self.parameters = parse_config(config, path=os.getcwd())
-        
-        # print(f'Main Repo: {repo_dir}, Repo Dir: {self.repo_dir}, params: {self.parameters}\n')
+                
         self.step_ = 0
 
         self.experiment = data.get("exp")
@@ -233,7 +236,7 @@ def read_config(file_name):
     return config, sdc_file, fr_file
 
 
-def parse_config(config, path=os.getcwd()):
+def parse_config(config, old_config, path=os.getcwd()):
     '''
     Parse configuration received from tune into make variables.
     '''
@@ -244,10 +247,10 @@ def parse_config(config, path=os.getcwd()):
         # Keys that begin with underscore need special handling.
         if key.startswith('_'):
             # Variables to be injected into fastroute.tcl
-            if key.startswith('_FR_'):
+            if key.startswith('_FR_') and key not in old_config:
                 fast_route[key.replace('_FR_', '', 1)] = value
             # Variables to be injected into constraints.sdc
-            elif key.startswith('_SDC_'):
+            elif key.startswith('_SDC_') and key not in old_config:
                 sdc[key.replace('_SDC_', '', 1)] = value
             # Special substitution cases
             elif key == "_PINS_DISTANCE":
@@ -355,7 +358,7 @@ def run_command(cmd, stderr_file=None, stdout_file=None, fail_fast=False, time_l
     Allows to run shell command, control print and exceptions.
     '''
 
-    # print(f'Running command: {cmd}\n')
+    print(f'Running command: {cmd}\n')
     try:
         if stderr_file is not None and stdout_file is not None:
             with open(stderr_file, 'a') as err_file, open(stdout_file, 'a') as out_file :
@@ -396,6 +399,7 @@ def openroad(base_dir, parameters, experiment_, last='finish', prev='', path='',
 
    
     if prev != "":
+        print("Copying from previous.")
         os.system(f'mkdir -p {base_dir}/flow/results/{platform}/{design}/{flow_variant}')
         os.system(f'mkdir -p {base_dir}/flow/objects/{platform}/{design}/{flow_variant}')
         os.system(f'mkdir -p {base_dir}/flow/logs/{platform}/{design}/{flow_variant}')
@@ -404,6 +408,8 @@ def openroad(base_dir, parameters, experiment_, last='finish', prev='', path='',
         os.system(f'cp -rp {base_dir}/flow/objects/{platform}/{design}/{prev}/* {base_dir}/flow/objects/{platform}/{design}/{flow_variant}/')
         os.system(f'cp -rp {base_dir}/flow/logs/{platform}/{design}/{prev}/* {base_dir}/flow/logs/{platform}/{design}/{flow_variant}/')
         os.system(f'cp -rp {base_dir}/flow/reports/{platform}/{design}/{prev}/* {base_dir}/flow/reports/{platform}/{design}/{flow_variant}/')
+    else:
+        print("No previous found..")
 
     export_command = f'export PATH={INSTALL_PATH}/OpenROAD/bin'
     export_command += f':{INSTALL_PATH}/yosys/bin'
@@ -692,8 +698,8 @@ if __name__ == '__main__':
 
 
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",150), 
-            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",150)]
+    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",60), 
+            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",80)]
 
     platform = "nangate45"
     design = "swerv_wrapper"
@@ -757,7 +763,7 @@ if __name__ == '__main__':
         CONTINUE_FROM = ray.put(f.read())
 
         with open(f'{LOCAL_DIR}/{experiment_str}/{analysis.best_trial.trial_id}.json', 'r') as f:
-            PREV_PARAMS = ray.put(json.loads(f))
+            PREV_PARAMS = ray.put(json.loads(f.read()))
 
         print(f'Best Variant for {ray.get(LAST_STEP)} is {ray.get(CONTINUE_FROM)} with params {analysis.best_result} achieved in {(end_time - start_time)} seconds.') 
         sys.stdout.flush()
