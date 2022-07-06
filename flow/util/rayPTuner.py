@@ -77,13 +77,12 @@ class AutoTunerBase(tune.Trainable):
         
         config.update(self.previous_config)
 
-        print(f'Params after overwriting: {config} with params: {self.parameters}\n')
-
         self.parameters = parse_config(config, self.previous_config, path=os.getcwd())
 
-        
-        
-        
+
+        print(f'Params after overwriting: {config} with params: {self.parameters}\n')
+
+
         self.currentConfig = config
                 
         self.step_ = 0
