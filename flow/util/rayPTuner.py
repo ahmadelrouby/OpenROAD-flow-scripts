@@ -699,8 +699,10 @@ if __name__ == '__main__':
 
 
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",60), 
-            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",80)]
+    # runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",60), 
+    #         ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",80)]
+
+    runs = [("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",40)]
 
     platform = "nangate45"
     design = "swerv_wrapper"
