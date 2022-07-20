@@ -41,7 +41,7 @@ CONSTRAINTS_SDC = 'constraint.sdc'
 TIMEOUT = 10800
 JOBS = 20
 DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-PPA_REF = '/home/ahmad/OpenROAD-flow-scripts/flow/designs/nangate45/swerv_wrapper/metrics_base.json'
+PPA_REF = '/home/ahmad/OpenROAD-flow-scripts/flow/designs/sky130hd/ibex/metrics_base.json'
 # experiment = f'test-tune-{DATE}-{uuid.uuid4()}'
 # platform = ""
 # design = ""
@@ -699,13 +699,13 @@ if __name__ == '__main__':
 
 
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("place", "../designs/nangate45/swerv_wrapper/autotuner_place.json",40), 
-            ("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",40)]
+    runs = [("place", "../designs/sky130hd/ibex/autotuner_place.json",40), 
+            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
 
-    # runs = [("finish", "../designs/nangate45/swerv_wrapper/autotuner_finish.json",40)]
+    # runs = [("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
 
-    platform = "nangate45"
-    design = "swerv_wrapper"
+    platform = "sky130hd"
+    design = "ibex"
     verbose = 0
 
     dd = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
