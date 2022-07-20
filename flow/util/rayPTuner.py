@@ -699,8 +699,8 @@ if __name__ == '__main__':
 
 
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("place", "../designs/sky130hd/ibex/autotuner_place.json",40), 
-            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
+    runs = [("place", "../designs/sky130hd/ibex/autotuner_place.json",200), 
+            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",150)]
 
     # runs = [("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
 
