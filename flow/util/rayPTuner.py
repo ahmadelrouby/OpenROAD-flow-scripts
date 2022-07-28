@@ -568,22 +568,19 @@ def evaluate_cts(metrics):
     performance = (clock_details - worst_slack)
     
 
-    if cts_metrics is None or cts_metrics.get("timing__drv__max_slew__post_repair") == "ERR" or cts_metrics.get("timing__drv__max_slew__post_repair") == "N/A":
+    if cts_metrics is None or cts_metrics.get("timing__drv__max_slew_limit__post_repair") is None or cts_metrics.get("timing__drv__max_slew_limit__post_repair") == "ERR" or cts_metrics.get("timing__drv__max_slew_limit__post_repair") == "N/A":
         return 99999999999
 
-    if cts_metrics is None or cts_metrics.get("timing__drv__max_fanout___post_repair") == "ERR" or cts_metrics.get("timing__drv__max_fanout___post_repair") == "N/A":
-        return 99999999999
 
-    if cts_metrics is None or cts_metrics.get("timing__drv__max_cap__post_repair") == "ERR" or cts_metrics.get("timing__drv__max_cap__post_repair") == "N/A":
+    if cts_metrics is None or cts_metrics.get("timing__drv__max_cap_limit__post_repair") is None or cts_metrics.get("timing__drv__max_cap_limit__post_repair") == "ERR" or cts_metrics.get("timing__drv__max_cap_limit__post_repair") == "N/A":
         return 99999999999
 
     # Violations
     drvs = 0
-    drvs += cts_metrics.get("timing__drv__max_slew__post_repair")
-    drvs += cts_metrics.get("timing__drv__max_fanout___post_repair")
-    drvs += cts_metrics.get("timing__drv__max_cap__post_repair")
+    drvs += cts_metrics.get("timing__drv__max_slew_limit__post_repair")
+    drvs += cts_metrics.get("timing__drv__max_cap_limit__post_repair")
     
-    if cts_metrics is None or cts_metrics.get("clock__skew__worst") == "ERR" or cts_metrics.get("clock__skew__worst") == "N/A" :
+    if cts_metrics is None or cts_metrics.get("clock__skew__worst") is None or cts_metrics.get("clock__skew__worst") == "ERR" or cts_metrics.get("clock__skew__worst") == "N/A" :
         return 99999999999
     
     # Clock Skew
