@@ -551,17 +551,19 @@ clean_cts:
 # |  _ <| |_| | |_| | | |  | || |\  | |_| |
 # |_| \_\\___/ \___/  |_| |___|_| \_|\____|
 #
-route: $(RESULTS_DIR)/5_route.odb \
-       $(RESULTS_DIR)/5_route.sdc
+
 # ==============================================================================
 
 
+globalroute: $(RESULTS_DIR)/route.guide
 # STEP 1: Run global route
 #-------------------------------------------------------------------------------
 $(RESULTS_DIR)/route.guide: $(RESULTS_DIR)/4_cts.odb $(FASTROUTE_TCL) $(PRE_GLOBAL_ROUTE)
 	($(TIME_CMD) $(OPENROAD_CMD) $(SCRIPTS_DIR)/global_route.tcl -metrics $(LOG_DIR)/5_1_fastroute.json) 2>&1 | tee $(LOG_DIR)/5_1_fastroute.log
 
 
+detailedroute: $(RESULTS_DIR)/5_route.odb \
+               $(RESULTS_DIR)/5_route.sdc
 # STEP 2: Run detailed route
 #-------------------------------------------------------------------------------
 ifeq ($(USE_WXL),)

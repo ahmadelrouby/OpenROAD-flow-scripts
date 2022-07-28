@@ -1,18 +1,9 @@
 {
-    "_FR_LAYER_ADJUST": {
-        "type": "float",
-        "minmax": [
-            0.1,
-            0.7
-        ],
-        "step": 0
-    },
-    "_FR_FILE_PATH": "../../../platforms/sky130hd/fastroute.tcl",
-    "_FR_GR_OVERFLOW": {
+    "NA": {
         "type": "int",
         "minmax": [
-            1,
-            1
+            2,
+            2
         ],
         "step": 0
     }

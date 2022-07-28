@@ -490,9 +490,6 @@ def evaluate_groute(metrics):
     if groute_metrics is None or groute_metrics.get("timing__drv__max_slew") == "ERR" or groute_metrics.get("timing__drv__max_slew") == "N/A":
         return 99999999999
 
-    if groute_metrics is None or groute_metrics.get("timing__drv__max_fanout") == "ERR" or groute_metrics.get("timing__drv__max_fanout") == "N/A":
-        return 99999999999
-
     if groute_metrics is None or groute_metrics.get("timing__drv__max_cap") == "ERR" or groute_metrics.get("timing__drv__max_cap") == "N/A":
         return 99999999999
 
@@ -590,6 +587,33 @@ def evaluate_cts(metrics):
     print(f'performance: {performance}, drvs: {drvs}, skew: {skew}\n')
     return performance + drvs + skew
 
+def read_metrics_groute(data):
+    '''
+    Collects metrics to evaluate the user-defined objective function.
+    '''
+    clk_period = 9999999
+    worst_slack = 'ERR'
+    wirelength = 'ERR'
+    num_drc = 'ERR'
+    total_power = 'ERR'
+    core_util = 'ERR'
+    final_util = 'ERR'
+    for stage, value in data.items():
+        if stage == 'constraints' and len(value['clocks__details']) > 0:
+            clk_period = float(value['clocks__details'][0].split()[1])
+        if stage == 'detailedplace' and 'route__wirelength__estimated' in value:
+            wirelength = value['route__wirelength__estimated']
+        if stage == 'globalroute' and 'timing__setup__ws' in value:
+            worst_slack = value['timing__setup__ws']
+        if stage == 'placeopt' and 'design__instance__utilization' in value:
+            final_util = value['design__instance__utilization']
+    ret = {
+        "clk_period": clk_period,
+        "worst_slack": worst_slack,
+        "wirelength": wirelength,
+        "final_util": final_util
+    }
+    return ret
 
 def read_metrics(data):
     '''
@@ -672,6 +696,51 @@ def get_ppa(metrics, reference):
         ppa += area * coeff_area
         return ppa_upper_bound - ppa
 
+def get_ppa_groute(metrics, reference):
+        '''
+        Compute PPA term for evaluate.
+        '''
+        coeff_perform, coeff_area = 10000, 100
+
+        eff_clk_period = metrics['clk_period']
+        if metrics['worst_slack'] < 0:
+            eff_clk_period -= metrics['worst_slack']
+
+        eff_clk_period_ref = reference['clk_period']
+        if reference['worst_slack'] < 0:
+            eff_clk_period_ref -= reference['worst_slack']
+
+        def percent(x_1, x_2):
+            return (x_1 - x_2) / x_1 * 100
+
+        performance = percent(eff_clk_period_ref, eff_clk_period)
+
+
+        area = percent(100 - reference['final_util'],
+                       100 - metrics['final_util'])
+
+        # Lower values of PPA are better.
+        ppa_upper_bound = (coeff_perform + coeff_area) * 100
+        ppa = performance * coeff_perform
+        ppa += area * coeff_area
+        return ppa_upper_bound - ppa
+
+def evaluate_groute_ppa(raw_metrics):
+    metrics = read_metrics_groute(raw_metrics)
+    with open(PPA_REF) as file:
+            data = json.load(file) 
+    ref_metrics = read_metrics(data)
+
+    error = 'ERR' in metrics.values() or 'ERR' in ref_metrics.values()
+    not_found = 'N/A' in metrics.values() or 'N/A' in ref_metrics.values()
+    if error or not_found:
+        return (99999999999)
+    ppa = get_ppa_groute(metrics, ref_metrics)
+    
+    score = ppa 
+    print(f'ppa score is {score}')
+    return score
+
 def evaluate_end_ppa(raw_metrics):
     metrics = read_metrics(raw_metrics)
     with open(PPA_REF) as file:
@@ -695,9 +764,9 @@ if __name__ == '__main__':
         last_score_fn = evaluate_end_ppa
 
 
-    stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("cts", "../designs/sky130hd/ibex/autotuner_cts.json",200), 
-            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",150)]
+    stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute_ppa, "cts": evaluate_cts ,"finish": last_score_fn}
+    runs = [("globalroute", "../designs/sky130hd/ibex/autotuner_groute.json",300), 
+            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",1)]
 
     # runs = [("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
 
