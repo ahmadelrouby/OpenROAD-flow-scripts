@@ -22,8 +22,8 @@
     "mem__peak": 802308.0
   },
   "constraints": {
-    "constraints__clocks__count": 1,
-    "constraints__clocks__details": [
+    "clocks__count": 1,
+    "clocks__details": [
       "clk: 9.0000"
     ]
   },
