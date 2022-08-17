@@ -1,18 +1,10 @@
 {
-    "CTS_CLUSTER_SIZE": {
+    "NA": {
         "type": "int",
         "minmax": [
-            25,
-            35
+            2,
+            2
         ],
-        "step": 1
-    },
-    "CTS_CLUSTER_DIAMETER": {
-        "type": "int",
-        "minmax": [
-            80,
-            120
-        ],
-        "step": 1
+        "step": 0
     }
 }

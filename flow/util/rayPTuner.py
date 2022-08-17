@@ -757,8 +757,8 @@ def evaluate_end_ppa(raw_metrics):
     return score
 
 if __name__ == '__main__': 
-    platform = "sky130hd"
-    design = "ibex"
+    platform = "nangate45"
+    design = "swerv_wrapper"
     verbose = 0
 
     PPA_REF = f'/home/ahmad/OpenROAD-flow-scripts/flow/designs/{platform}/{design}/metrics_base.json'
