@@ -41,7 +41,6 @@ CONSTRAINTS_SDC = 'constraint.sdc'
 TIMEOUT = 10800
 JOBS = 20
 DATE = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-PPA_REF = '/home/ahmad/OpenROAD-flow-scripts/flow/designs/sky130hd/ibex/metrics_base.json'
 # experiment = f'test-tune-{DATE}-{uuid.uuid4()}'
 # platform = ""
 # design = ""
@@ -757,22 +756,24 @@ def evaluate_end_ppa(raw_metrics):
     print(f'ppa score is {score}')
     return score
 
-if __name__ == '__main__':
+if __name__ == '__main__': 
+    platform = "sky130hd"
+    design = "ibex"
+    verbose = 0
+
+    PPA_REF = f'/home/ahmad/OpenROAD-flow-scripts/flow/designs/{platform}/{design}/metrics_base.json'
 
     last_score_fn = evaluate_end
     if IS_PPA and PPA_REF != '':
         last_score_fn = evaluate_end_ppa
 
-
     stage_evals = {"floorplan": evaluate_floorplan, "place": evaluate_placement, "globalroute": evaluate_groute_ppa, "cts": evaluate_cts ,"finish": last_score_fn}
-    runs = [("globalroute", "../designs/sky130hd/ibex/autotuner_groute.json",300), 
-            ("finish", "../designs/sky130hd/ibex/autotuner_finish.json",1)]
+    runs = [("globalroute", f'../designs/{platform}/{design}/autotuner_groute.json',300), 
+            ("finish", f'../designs/{platform}/{design}/autotuner_finish.json',1)]
 
-    # runs = [("finish", "../designs/sky130hd/ibex/autotuner_finish.json",40)]
+    # runs = [("finish", f'../designs/{platform}/{design}/autotuner_groute.json',300)]
 
-    platform = "sky130hd"
-    design = "ibex"
-    verbose = 0
+    
 
     dd = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     sys.stdout = open(f'logs-{dd}.log', 'w')
