@@ -1,10 +1,9 @@
 {
-    "_SDC_FILE_PATH": "constraint.sdc",
-    "_SDC_CLK_PERIOD": {
+    "SETUP_SLACK_MARGIN": {
         "type": "float",
         "minmax": [
-            2.0,
-            15.0
+            0,
+            2.5
         ],
         "step": 0
     },
