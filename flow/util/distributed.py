@@ -437,25 +437,30 @@ def run_command(cmd, timeout=None,
     Wrapper for subprocess.run
     Allows to run shell command, control print and exceptions.
     '''
-    process = run(cmd,
-                  timeout=timeout,
-                  capture_output=True,
-                  text=True,
-                  check=False,
-                  shell=True)
-    if stderr_file is not None and process.stderr != '':
-        with open(stderr_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stderr}')
-    if stdout_file is not None and process.stdout != '':
-        with open(stdout_file, 'a') as file:
-            file.write(f'\n\n{cmd}\n{process.stdout}')
-    if args.verbose >= 1:
-        print(process.stderr)
-    if args.verbose >= 2:
-        print(process.stdout)
 
-    if fail_fast and process.returncode != 0:
-        raise RuntimeError
+    print(f'Running command: {cmd}\n')
+    try:
+        process = run(cmd,
+                    timeout=timeout,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    shell=True)
+        if stderr_file is not None and process.stderr != '':
+            with open(stderr_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stderr}')
+        if stdout_file is not None and process.stdout != '':
+            with open(stdout_file, 'a') as file:
+                file.write(f'\n\n{cmd}\n{process.stdout}')
+        if args.verbose >= 1:
+            print(process.stderr)
+        if args.verbose >= 2:
+            print(process.stdout)
+
+        if fail_fast and process.returncode != 0:
+            raise RuntimeError
+    except:
+        print("Execution ended because of timeout.")
 
 
 @ray.remote
