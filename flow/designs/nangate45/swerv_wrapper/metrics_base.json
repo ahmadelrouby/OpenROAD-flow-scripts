@@ -150,7 +150,7 @@
       "power__leakage__total": 0.03,
       "power__total": 0.14,
       "design__instance__area": 663290.0,
-      "design__instance__utilization": 33.0,
+      "design__instance__utilization": 0.33,
       "runtime__total": "1:11.78",
       "cpu__total": 70.94,
       "mem__peak": 2996796.0

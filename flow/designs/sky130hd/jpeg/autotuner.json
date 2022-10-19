@@ -48,11 +48,43 @@
         ],
         "step": 1
     },
-    "_FR_LAYER_ADJUST": {
+    "_FR_LAYER_ADJUSTmet1": {
         "type": "float",
         "minmax": [
             0.1,
-            0.7
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmet2": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmet3": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmet4": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmet5": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
         ],
         "step": 0
     },

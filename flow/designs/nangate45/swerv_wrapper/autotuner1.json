@@ -50,7 +50,7 @@
     "_FR_LAYER_ADJUSTmetal2": {
         "type": "float",
         "minmax": [
-            0.2,
+            0.1,
             0.9
         ],
         "step": 0
@@ -58,12 +58,60 @@
     "_FR_LAYER_ADJUSTmetal3": {
         "type": "float",
         "minmax": [
-            0.2,
+            0.1,
             0.9
         ],
         "step": 0
     },
-    "_FR_LAYER_ADJUSTmetal4-$::env(MAX_ROUTING_LAYER)": {
+    "_FR_LAYER_ADJUSTmetal4": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal5": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal6": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal7": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal8": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal9": {
+        "type": "float",
+        "minmax": [
+            0.1,
+            0.9
+        ],
+        "step": 0
+    },
+    "_FR_LAYER_ADJUSTmetal10": {
         "type": "float",
         "minmax": [
             0.1,
