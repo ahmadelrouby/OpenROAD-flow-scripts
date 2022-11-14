@@ -510,6 +510,14 @@ def openroad(base_dir, parameters, flow_variant, path=''):
                 stderr_file=f'{log_path}error-metrics.log',
                 stdout_file=f'{log_path}metrics-stdout.log')
 
+    clean_command = export_command
+    clean_command += f'make -C {base_dir}/flow DESIGN_CONFIG=designs/'
+    clean_command += f'{args.platform}/{args.design}/config.mk'
+    clean_command += f' FLOW_VARIANT={flow_variant} SHELL=bash clean_all'
+    run_command(clean_command,
+                stderr_file=f'{log_path}error-clean-finish.log',
+                stdout_file=f'{log_path}clean-finish-stdout.log')
+
     return metrics_file
 
 
